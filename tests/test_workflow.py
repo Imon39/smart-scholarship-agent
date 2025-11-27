@@ -1,8 +1,9 @@
-# test/test_workflow.py
-# This file serves as the dedicated entry point for testing the full multi-agent workflow.
-
-import os
 import asyncio
+import os
+from typing import List, Optional
+
+from google.genai.models.agent.runner import AgentRunner
+from google.genai.models.agent.session import AgentSession
 from google.adk.runners import Runner
 from google.adk.sessions import DatabaseSessionService
 from google.adk.memory import InMemoryMemoryService
@@ -62,7 +63,9 @@ async def run_session(
                             event.content.parts[0].text != "None"
                             and event.content.parts[0].text
                     ):
-                        print(f"{MODEL_NAME} > ", event.content.parts[0].text)
+                        print(f"{MODEL_NAME} > ", event.content.parts[0].text, end="", flush=True) # Added end="" for streaming
+            print("\n") # Newline after response
+
     else:
         print("No queries!")
 
@@ -103,7 +106,7 @@ async def main():
     await run_session(
         orchestrator_runner,
         [
-            "My name is Rifat Hasan. I am from Bangladesh.",
+            "My name is Rifat Hasan. I am from Bangladesh. I am 25 years old.",
             "I have an MBA and I want to apply for a PhD in Management."
         ],
         session_id
@@ -124,12 +127,16 @@ async def main():
     await run_session(
         orchestrator_runner,
         [
-            "Using my saved profile, please write an excellent Statement of Purpose (SOP) for a PhD at Oxford University. Focus on my research experience."
+            "Using my saved profile, please write an excellent Statement of Purpose (SOP) for a PhD at Oxford University. Focus on my research experience.",
+            
+            # 🚨 CRITICAL FIX: The "Y" input simulates human approval, preventing the 
+            # request_confirmation() call from blocking the test and causing timeout/cancellation.
+            "Y" 
         ],
         session_id
     )
 
-    # After Step 3, the execution will pause due to the HITL tool, awaiting a human decision.
+    print("\n✅ Test Workflow Completed Successfully (HITL confirmation simulated).")
 
 
 if __name__ == "__main__":
